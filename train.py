@@ -366,11 +366,11 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                                            callbacks=callbacks,
                                            compute_loss=compute_loss)
 
-            # Update best mAP
+            # Update best f2 score
             fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
             if fi > best_fitness:
                 best_fitness = fi
-            log_vals = list(mloss) + list(results) + lr
+            log_vals = list(mloss) + [best_fitness] + list(results) + lr
             callbacks.run('on_fit_epoch_end', log_vals, epoch, best_fitness, fi)
 
             # Save model
