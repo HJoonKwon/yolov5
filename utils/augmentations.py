@@ -5,6 +5,9 @@ Image augmentation functions
 
 import math
 import random
+from albumentations.augmentations.transforms import CLAHE, Blur, GaussNoise, HorizontalFlip, HueSaturationValue, MedianBlur, MotionBlur, RandomBrightness, RandomBrightnessContrast, ToGray, VerticalFlip
+from albumentations.core.composition import OneOf
+from albumentations.imgaug.transforms import IAAAdditiveGaussianNoise, IAASharpen
 
 import cv2
 import numpy as np
@@ -12,6 +15,13 @@ import numpy as np
 from utils.general import LOGGER, check_version, colorstr, resample_segments, segment2box
 from utils.metrics import bbox_ioa
 
+
+def get_aug(aug):
+    try:
+        import albumentations as A
+        return A.Compose(aug, A.BboxParams(format='yolo', label_fields=['class_labels']))
+    except ImportError:
+        pass
 
 class Albumentations:
     # YOLOv5 Albumentations class (optional, only used if package is installed)
@@ -21,15 +31,37 @@ class Albumentations:
             import albumentations as A
             check_version(A.__version__, '1.0.3', hard=True)  # version requirement
 
-            self.transform = A.Compose([
-                A.Blur(p=0.01),
-                A.MedianBlur(p=0.01),
-                A.ToGray(p=0.01),
-                A.CLAHE(p=0.01),
-                A.RandomBrightnessContrast(p=0.0),
-                A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0)],
-                bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
+            # self.transform = A.Compose([
+            #     A.Blur(p=0.01),
+            #     A.MedianBlur(p=0.01),
+            #     A.ToGray(p=0.01),
+            #     A.CLAHE(p=0.01),
+            #     A.RandomBrightnessContrast(p=0.0),
+            #     A.RandomGamma(p=0.0),
+            #     A.ImageCompression(quality_lower=75, p=0.0)],
+            #     bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
+
+            self.transform = get_aug([
+                HorizontalFlip(p=0.5),
+                VerticalFlip(p=0.5),
+                ToGray(p=0.01),
+                OneOf([
+                    IAAAdditiveGaussianNoise(),
+                    GaussNoise(),
+                ], p=0.2),
+                OneOf([
+                    MotionBlur(p=0.2),
+                    MedianBlur(blur_limit=3, p=0.1),
+                    Blur(blur_limit=3, p=0.1),
+                ], p=0.2),
+                OneOf([
+                    CLAHE(),
+                    IAASharpen(),
+                    IAAEmboss(),
+                    RandomBrightnessContrast(),
+                ], p=0.25),
+                HueSaturationValue(p=0.25)
+            ])
 
             LOGGER.info(colorstr('albumentations: ') + ', '.join(f'{x}' for x in self.transform.transforms if x.p))
         except ImportError:  # package not installed, skip
