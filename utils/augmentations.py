@@ -7,7 +7,7 @@ import math
 import random
 from albumentations.augmentations.transforms import CLAHE, Blur, GaussNoise, HorizontalFlip, HueSaturationValue, MedianBlur, MotionBlur, RandomBrightness, RandomBrightnessContrast, ToGray, VerticalFlip
 from albumentations.core.composition import OneOf
-from albumentations.imgaug.transforms import IAAAdditiveGaussianNoise, IAASharpen
+from albumentations.imgaug.transforms import IAAAdditiveGaussianNoise, IAASharpen, IAAEmboss
 
 import cv2
 import numpy as np
