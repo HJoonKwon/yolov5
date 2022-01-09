@@ -60,6 +60,7 @@ class Albumentations:
                     IAAEmboss(),
                     RandomBrightnessContrast(),
                 ], p=0.25),
+                HueSaturationValue(p=0.25)
             ])
 
             LOGGER.info(colorstr('albumentations: ') + ', '.join(f'{x}' for x in self.transform.transforms if x.p))
