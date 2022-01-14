@@ -40,28 +40,15 @@ class Albumentations:
             #     A.RandomGamma(p=0.0),
             #     A.ImageCompression(quality_lower=75, p=0.0)],
             #     bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
-
-            self.transform = get_aug([
-                HorizontalFlip(p=0.5),
-                VerticalFlip(p=0.5),
-                ToGray(p=0.01),
-                OneOf([
-                    IAAAdditiveGaussianNoise(),
-                    GaussNoise(),
-                ], p=0.2),
-                OneOf([
-                    MotionBlur(p=0.2),
-                    MedianBlur(blur_limit=3, p=0.1),
-                    Blur(blur_limit=3, p=0.1),
-                ], p=0.2),
-                OneOf([
-                    CLAHE(),
-                    IAASharpen(),
-                    IAAEmboss(),
-                    RandomBrightnessContrast(),
-                ], p=0.25),
-                HueSaturationValue(p=0.25)
-            ])
+            self.transform = A.Compose([
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.ToGray(p=0.01),
+                A.GaussNoise(p=0.2),
+                A.RandomBrightnessContrast(brightness_limit=(-0.1,0.1),contrast_limit=(0.0,0.2),p=0.5),
+                A.HueSaturationValue(hue_shift_limit=0, val_shift_limit=50, p=0.0),
+                A.Resize(height = 2880, width=5120, p=1.0)
+            ], bbox_params=A.BboxParams(format='yolo', min_area=400, min_visibility=0.1, label_fields=['class_labels']))
 
             LOGGER.info(colorstr('albumentations: ') + ', '.join(f'{x}' for x in self.transform.transforms if x.p))
         except ImportError:  # package not installed, skip
