@@ -45,9 +45,8 @@ class Albumentations:
                 A.VerticalFlip(p=0.5),
                 A.ToGray(p=0.01),
                 A.GaussNoise(p=0.2),
-                A.RandomBrightnessContrast(brightness_limit=(-0.1,0.1),contrast_limit=(0.0,0.2),p=0.5),
+                A.RandomBrightnessContrast(brightness_limit=(-0.1,0.1),contrast_limit=(-0.2,0.),p=1.0),
                 A.HueSaturationValue(hue_shift_limit=0, val_shift_limit=50, p=0.0),
-                A.Resize(height = 2880, width=5120, p=1.0)
             ], bbox_params=A.BboxParams(format='yolo', min_area=400, min_visibility=0.1, label_fields=['class_labels']))
 
             LOGGER.info(colorstr('albumentations: ') + ', '.join(f'{x}' for x in self.transform.transforms if x.p))
