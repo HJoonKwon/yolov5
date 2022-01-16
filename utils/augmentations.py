@@ -45,7 +45,8 @@ class Albumentations:
                 A.VerticalFlip(p=0.5),
                 A.ToGray(p=0.01),
                 A.GaussNoise(p=0.2),
-                A.RandomBrightnessContrast(brightness_limit=(-0.1,0.1),contrast_limit=(-0.2,0.),p=1.0),
+                A.RandomBrightnessContrast(brightness_limit=(-0.1,0.1),contrast_limit=(-0.2,0.0),p=0.5),
+                A.RandomSizedBBoxSafeCrop(width = 1280, height = 720, erosion_rate = 0.2),
                 A.HueSaturationValue(hue_shift_limit=0, val_shift_limit=50, p=0.0),
             ], bbox_params=A.BboxParams(format='yolo', min_area=400, min_visibility=0.1, label_fields=['class_labels']))
 
