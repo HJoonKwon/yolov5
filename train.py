@@ -353,23 +353,23 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
             callbacks.run('on_train_epoch_end', epoch=epoch)
             ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'names', 'stride', 'class_weights'])
             final_epoch = (epoch + 1 == epochs) or stopper.possible_stop
-            if not noval or final_epoch:  # Calculate mAP
-                results, maps, _ = val.run(data_dict,
-                                           batch_size=batch_size // WORLD_SIZE * 2,
-                                           imgsz=imgsz,
-                                           model=ema.ema,
-                                           single_cls=single_cls,
-                                           dataloader=val_loader,
-                                           save_dir=save_dir,
-                                           plots=False,
-                                           callbacks=callbacks,
-                                           compute_loss=compute_loss)
+            if not noval or final_epoch:  # Calculate mAP, mF2
+                results, maps, mf2, _ = val.run(data_dict,
+                                                batch_size=batch_size // WORLD_SIZE * 2,
+                                                imgsz=imgsz,
+                                                model=ema.ema,
+                                                single_cls=single_cls,
+                                                dataloader=val_loader,
+                                                save_dir=save_dir,
+                                                plots=False,
+                                                callbacks=callbacks,
+                                                compute_loss=compute_loss)
 
-            # Update best mAP
+            # Update best f2 score
             fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
             if fi > best_fitness:
                 best_fitness = fi
-            log_vals = list(mloss) + list(results) + lr
+            log_vals = list(mloss) + [mf2] + list(results) + lr
             callbacks.run('on_fit_epoch_end', log_vals, epoch, best_fitness, fi)
 
             # Save model
@@ -415,19 +415,19 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                 strip_optimizer(f)  # strip optimizers
                 if f is best:
                     LOGGER.info(f'\nValidating {f}...')
-                    results, _, _ = val.run(data_dict,
-                                            batch_size=batch_size // WORLD_SIZE * 2,
-                                            imgsz=imgsz,
-                                            model=attempt_load(f, device).half(),
-                                            iou_thres=0.65 if is_coco else 0.60,  # best pycocotools results at 0.65
-                                            single_cls=single_cls,
-                                            dataloader=val_loader,
-                                            save_dir=save_dir,
-                                            save_json=is_coco,
-                                            verbose=True,
-                                            plots=True,
-                                            callbacks=callbacks,
-                                            compute_loss=compute_loss)  # val best model with plots
+                    results, _, _, _ = val.run(data_dict,
+                                               batch_size=batch_size // WORLD_SIZE * 2,
+                                               imgsz=imgsz,
+                                               model=attempt_load(f, device).half(),
+                                               iou_thres=0.65 if is_coco else 0.60,  # best pycocotools results at 0.65
+                                               single_cls=single_cls,
+                                               dataloader=val_loader,
+                                               save_dir=save_dir,
+                                               save_json=is_coco,
+                                               verbose=True,
+                                               plots=True,
+                                               callbacks=callbacks,
+                                               compute_loss=compute_loss)  # val best model with plots
                     if is_coco:
                         callbacks.run('on_fit_epoch_end', list(mloss) + list(results) + lr, epoch, best_fitness, fi)
 
